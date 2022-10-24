@@ -51,23 +51,26 @@ def somma_quad(alfa, pars):
 
 # Inizio programma
 
-centro, raggio = np.array([0,0]), 1
-print()
+rng = np.random.default_rng()
+centro, raggio = [rng.uniform(-2,2),rng.uniform(-2,2)], rng.uniform(17,20)
+print(centro, raggio)
 numLati = int(input('inserire il numero di lati del poligono: '))
 maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
-rng = np.random.default_rng()
 indiceVertici = np.arange(numLati)
-ascisseApprox = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
-ordinateApprox = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
-ascisse = centro[0] + raggio*np.cos(2*np.pi*indiceVertici/numLati)
-ordinate = centro[1] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
+# ascisseApprox = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
+# ordinateApprox = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
+ascisseApprox = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + rng.uniform(-maxScostamento,maxScostamento))
+ordinateApprox = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + rng.uniform(-maxScostamento,maxScostamento))
+# ascisse = centro[0] + raggio*np.cos(2*np.pi*indiceVertici/numLati)
+# ordinate = centro[1] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
 
 dati_x = ascisseApprox
 dati_y = ordinateApprox
 # ricerca cfr ottimale
 x_med = np.mean(dati_x)
 y_med = np.mean(dati_y)
-stima_iniziale_raggio = np.sqrt((dati_x[0]-x_med)**2 + (dati_y[0]-y_med)**2)
+# stima_iniziale_raggio = np.sqrt((dati_x[0]-x_med)**2 + (dati_y[0]-y_med)**2)
+stima_iniziale_raggio =np.mean(np.sqrt((dati_x-x_med)**2 + (dati_y-y_med)**2))
 x0 = np.array([x_med, y_med, stima_iniziale_raggio])
 esiti = optimize.minimize(funzione_obiettivo, x0, args = (dati_x, dati_y))
 # print(esiti)
@@ -76,12 +79,7 @@ xc, yc, r = esiti.x
 # costruzione poligono mobile
 
 par = [xc, yc, r, dati_x, dati_y, np.arange(numLati), numLati]
-# alfa=0
-xPolMobile, yPolMobile = poligonoRegolare(indiceVertici, par)
-# somma_quad = np.sum((dati_x-xPolMobile)**2+(dati_y-yPolMobile)**2)
 diz = optimize.minimize(somma_quad, 0, par)
-
-print(diz)
 
 xp, yp = punti_cfr_ottimale(xc, yc, r)
 
@@ -100,7 +98,7 @@ plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
 plt.scatter(xc, yc, c = 'red', marker = 'x')
 plt.scatter(ascisseApprox, ordinateApprox, c = 'red', label = 'vertici iniziali (approx.ideale)', marker = 'x')
 plt.scatter(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
-plt.fill(ascisse, ordinate, facecolor = 'red', alpha = 0.1, label = 'poligono ideale di partenza')
+# plt.fill(ascisse, ordinate, facecolor = 'red', alpha = 0.1, label = 'poligono ideale di partenza')
 plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Vertici iniziali approssimati, circonferenza ottimale\n e poligono geometrico regolare di regressione')
