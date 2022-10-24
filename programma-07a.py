@@ -38,25 +38,25 @@ def punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, raggio):
     return punti
 
 # Genera il poligono regolare geometrico
-# def poligonoRegolare(alfa, pars):
-#     xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa+0.2)
-#     yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa+0.2)
-#     return xPolMobile, yPolMobile
+def poligonoRegolare(alfa, pars):
+    xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa)
+    yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa)
+    return xPolMobile, yPolMobile
 
-# def sommaQuad(alfa, pars):
-#     dim = len(alfa)
-#     verticiUtilizzati = len(pars[5])
-#     xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
-#     difxq = (np.broadcast_to(pars[3],(dim,verticiUtilizzati)) - np.transpose(xPolMobile))**2
-#     difyq = (np.broadcast_to(pars[4],(dim,verticiUtilizzati)) - np.transpose(yPolMobile))**2
-#     somma = sum(np.transpose(difxq + difyq))
-#     return somma
+def sommaQuad(alfa, pars):
+    dim = len(alfa)
+    verticiUtilizzati = len(pars[5])
+    xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
+    difxq = (np.broadcast_to(pars[3],(dim,verticiUtilizzati)) - np.transpose(xPolMobile))**2
+    difyq = (np.broadcast_to(pars[4],(dim,verticiUtilizzati)) - np.transpose(yPolMobile))**2
+    somma = sum(np.transpose(difxq + difyq))
+    return somma
 
-def ptsCirconferenzaOttimale(xc,yc,R):
-    alfa = np.linspace(-np.pi, np.pi, 180)
-    xp = xc + R*np.cos(alfa)
-    yp = yc + R*np.sin(alfa)
-    return xp, yp
+def somma_quad(alfa, pars):
+    # verticiUtilizzati = len(pars[5])
+    xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
+    somma = np.sum((pars[3]-xPolMobile)**2+(pars[4]-yPolMobile)**2)
+    return somma    
 
 # Inizio programma
 
@@ -73,15 +73,24 @@ ordinate = centro[0] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
 
 dati_x = ascisseApprox
 dati_y = ordinateApprox
+# ricerca cfr ottimale
 x_med = np.mean(dati_x)
 y_med = np.mean(dati_y)
 stima_iniziale_raggio = np.sqrt((dati_x[0]-x_med)**2 + (dati_y[0]-y_med)**2)
-
 x0 = np.array([x_med, y_med, stima_iniziale_raggio])
-
 esiti = optimize.minimize(funzione_obiettivo, x0, args = (dati_x, dati_y))
-
+# print(esiti)
 xc, yc, r = esiti.x
+
+# costruzione poligono mobile
+
+par = [xc, yc, r, dati_x, dati_y, np.arange(numLati), numLati]
+# alfa=0
+xPolMobile, yPolMobile = poligonoRegolare(indiceVertici, par)
+# somma_quad = np.sum((dati_x-xPolMobile)**2+(dati_y-yPolMobile)**2)
+diz = optimize.minimize(somma_quad, 0, par)
+
+print(diz)
 
 xp, yp = punti_cfr_ottimale(xc, yc, r)
 
@@ -95,13 +104,13 @@ figura = plt.figure(facecolor = 'white')
 plt.rcParams['figure.figsize'] = [16, 12]
 plt.axis('equal')
 plt.grid()
-xp, yp = ptsCirconferenzaOttimale(xc, yc, r)
+xp, yp = punti_cfr_ottimale(xc, yc, r)
 plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
 plt.scatter(xc, yc, c = 'red', marker = 'x')
 plt.scatter(ascisseApprox, ordinateApprox, c = 'red', label = 'vertici iniziali (approx.ideale)', marker = 'x')
-# plt.scatter(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
+plt.scatter(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
 plt.fill(ascisse, ordinate, facecolor = 'red', alpha = 0.1, label = 'poligono ideale di partenza')
-# plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
+plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Vertici iniziali approssimati, circonferenza ottimale\n e poligono geometrico regolare di regressione')
 plt.show()
