@@ -43,15 +43,6 @@ def poligonoRegolare(alfa, pars):
     yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa)
     return xPolMobile, yPolMobile
 
-def sommaQuad(alfa, pars):
-    dim = len(alfa)
-    verticiUtilizzati = len(pars[5])
-    xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
-    difxq = (np.broadcast_to(pars[3],(dim,verticiUtilizzati)) - np.transpose(xPolMobile))**2
-    difyq = (np.broadcast_to(pars[4],(dim,verticiUtilizzati)) - np.transpose(yPolMobile))**2
-    somma = sum(np.transpose(difxq + difyq))
-    return somma
-
 def somma_quad(alfa, pars):
     # verticiUtilizzati = len(pars[5])
     xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
@@ -66,10 +57,10 @@ numLati = int(input('inserire il numero di lati del poligono: '))
 maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
 rng = np.random.default_rng()
 indiceVertici = np.arange(numLati)
-ascisseApprox = centro[0] + raggio*np.cos(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
-ordinateApprox = centro[0] + raggio*np.sin(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
+ascisseApprox = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
+ordinateApprox = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + maxScostamento*rng.random())
 ascisse = centro[0] + raggio*np.cos(2*np.pi*indiceVertici/numLati)
-ordinate = centro[0] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
+ordinate = centro[1] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
 
 dati_x = ascisseApprox
 dati_y = ordinateApprox
