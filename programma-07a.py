@@ -22,50 +22,35 @@ from scipy import optimize
 import matplotlib.pyplot as plt
 
 # definizioni delle varie funzioni
-def calc_R(x, y, xc, yc):
-    return np.sqrt((x-xc)**2 + (y-yc)**2)
+def funzione_obiettivo(argomenti, ascisse, ordinate):
+    # argomenti[0] = ascissa centro,  argomenti[1] = ordinata centro, argomenti[2] = raggio,
+    return np.sum((np.sqrt((ascisse-argomenti[0])**2 + (ordinate-argomenti[1])**2)-argomenti[2])**2)
 
-def f(c, x, y):
-    Ri = calc_R(x, y, *c)
-    return Ri - Ri.mean()
+def punti_cfr_ottimale(xc, yc, raggio):
+    alfa = np.linspace(-np.pi, np.pi, 360)
+    xp = xc + raggio*np.cos(alfa)
+    yp = yc + raggio*np.sin(alfa)
+    return xp, yp
 
-def least_squares_circle(coords):
-    x, y = None, None
-    if isinstance(coords, np.ndarray):
-        x = coords[:, 0]
-        y = coords[:, 1]
-    elif isinstance(coords, list):
-        x = np.array([point[0] for point in coords])
-        y = np.array([point[1] for point in coords])
-    else:
-        raise Exception(
-            "Il parametro 'coords' è di un tipo non supportato: " + str(type(coords)))
-
-    # coordinate del baricentro
-    x_m = np.mean(x)
-    y_m = np.mean(y)
-    center_estimate = x_m, y_m
-    center, _ = optimize.leastsq(f, center_estimate, args = (x, y))
-    xc, yc = center
-    Ri = calc_R(x, y, *center)
-    R = Ri.mean()
-    residui = np.sum((Ri - R)**2)
-    return xc, yc, R, residui
+def punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, raggio):
+    angoli = np.arctan2(dati_y-yc,dati_x-xc)
+    punti = np.transpose([raggio*np.cos(angoli)+xc, raggio*np.sin(angoli)+yc])
+    return punti
 
 # Genera il poligono regolare geometrico
-def poligonoRegolare(alfa, pars):
-    xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa+0.2)
-    yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa+0.2)
-    return xPolMobile, yPolMobile
+# def poligonoRegolare(alfa, pars):
+#     xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa+0.2)
+#     yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa+0.2)
+#     return xPolMobile, yPolMobile
 
-def sommaQuad(alfa, pars):
-    dim = len(alfa)
-    verticiUtilizzati = len(pars[5])
-    xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
-    difxq = (np.broadcast_to(pars[3],(dim,verticiUtilizzati)) - np.transpose(xPolMobile))**2
-    difyq = (np.broadcast_to(pars[4],(dim,verticiUtilizzati)) - np.transpose(yPolMobile))**2
-    somma = sum(np.transpose(difxq + difyq))
-    return somma
+# def sommaQuad(alfa, pars):
+#     dim = len(alfa)
+#     verticiUtilizzati = len(pars[5])
+#     xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
+#     difxq = (np.broadcast_to(pars[3],(dim,verticiUtilizzati)) - np.transpose(xPolMobile))**2
+#     difyq = (np.broadcast_to(pars[4],(dim,verticiUtilizzati)) - np.transpose(yPolMobile))**2
+#     somma = sum(np.transpose(difxq + difyq))
+#     return somma
 
 def ptsCirconferenzaOttimale(xc,yc,R):
     alfa = np.linspace(-np.pi, np.pi, 180)
@@ -86,12 +71,22 @@ ordinateApprox = centro[0] + raggio*np.sin(2*np.pi*indiceVertici/numLati + maxSc
 ascisse = centro[0] + raggio*np.cos(2*np.pi*indiceVertici/numLati)
 ordinate = centro[0] + raggio*np.sin(2*np.pi*indiceVertici/numLati)
 
-xdata = ascisseApprox
-ydata = ordinateApprox
-coords = np.transpose([xdata, ydata])
-xc, yc, r, s = least_squares_circle(coords)
-par = [xc, yc, r, xdata, ydata, np.arange(numLati), numLati]
-diz = optimize.minimize(sommaQuad, 0, (par))
+dati_x = ascisseApprox
+dati_y = ordinateApprox
+x_med = np.mean(dati_x)
+y_med = np.mean(dati_y)
+stima_iniziale_raggio = np.sqrt((dati_x[0]-x_med)**2 + (dati_y[0]-y_med)**2)
+
+x0 = np.array([x_med, y_med, stima_iniziale_raggio])
+
+esiti = optimize.minimize(funzione_obiettivo, x0, args = (dati_x, dati_y))
+
+xc, yc, r = esiti.x
+
+xp, yp = punti_cfr_ottimale(xc, yc, r)
+
+punti_cfr = punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, r)
+[puntiCfr_x, puntiCfr_y] = [punti_cfr[:,0], punti_cfr[:,1]]
 
 # parte grafica
 # ESPANDERE la finestra grafica a tutto schermo ed eventualmente zoomare in regioni rettangolari
@@ -104,9 +99,9 @@ xp, yp = ptsCirconferenzaOttimale(xc, yc, r)
 plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
 plt.scatter(xc, yc, c = 'red', marker = 'x')
 plt.scatter(ascisseApprox, ordinateApprox, c = 'red', label = 'vertici iniziali (approx.ideale)', marker = 'x')
-plt.scatter(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
+# plt.scatter(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
 plt.fill(ascisse, ordinate, facecolor = 'red', alpha = 0.1, label = 'poligono ideale di partenza')
-plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
+# plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Vertici iniziali approssimati, circonferenza ottimale\n e poligono geometrico regolare di regressione')
 plt.show()
