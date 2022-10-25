@@ -51,13 +51,26 @@ def somma_quad(alfa, pars):
 
 # Inizio programma
 
-rng = np.random.default_rng()
-centro, raggio = [rng.uniform(-2,2),rng.uniform(-2,2)], rng.uniform(17,20)
-numLati = int(input('inserire il numero di lati del poligono: '))
-maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
-indiceVertici = np.arange(numLati)
-dati_x = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + rng.uniform(-maxScostamento,maxScostamento))
-dati_y = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + rng.uniform(-maxScostamento,maxScostamento))
+alternativa = int(input("si vuole leggere i dati da un file CSV (1) o generarli dal programma (2)? "))
+if alternativa==2:
+    rng = np.random.default_rng()
+    centro, raggio = [rng.uniform(-2,2),rng.uniform(-2,2)], rng.uniform(17,20)
+    numLati = int(input('inserire il numero di lati del poligono: '))
+    maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
+    indiceVertici = np.arange(numLati)
+    dati_x = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + rng.uniform(0,.1))
+    dati_y = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + rng.uniform(0,.1))
+elif alternativa != 2:
+    nome_file = input("Inserire il nome del file CSV: ")
+    # per esempio, esempio3-completo.csv
+    file_in = open(nome_file, "r")
+    coppie_dati = np.loadtxt(file_in, delimiter = ",", comments = '#', usecols = (0,1))
+    numLati = len(coppie_dati)
+    indiceVertici = np.arange(numLati)
+    nparrayX_Y = coppie_dati.transpose()
+    dati_x = nparrayX_Y[0]
+    dati_y = nparrayX_Y[1]
+    file_in.close()
 
 
 # ricerca cfr ottimale
@@ -74,15 +87,17 @@ xc, yc, r = esiti.x
 
 par = [xc, yc, r, dati_x, dati_y, indiceVertici, numLati]
 diz = optimize.minimize(somma_quad, 0, par)
+print(diz)
 angolo_ottimale = diz.x[0]
+
+nome_file = input("Inserisci il nome del file di output: ")
+file_out = open(nome_file, "w")
+coords = np.transpose(poligonoRegolare(angolo_ottimale, par))
+np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = '# ascissa, ordinata')
+file_out.close()
 
 xp, yp = punti_cfr_ottimale(xc, yc, r)
 
-# punti_cfr = punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, r)
-# [puntiCfr_x, puntiCfr_y] = [punti_cfr[:,0], punti_cfr[:,1]]
-
-# parte grafica
-# ESPANDERE la finestra grafica a tutto schermo ed eventualmente zoomare in regioni rettangolari
 
 figura = plt.figure(facecolor = 'white')
 plt.rcParams['figure.figsize'] = [16, 12]
@@ -95,5 +110,8 @@ plt.scatter(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ot
 plt.fill(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ottimale,par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Punti iniziali, circonferenza ottimale\n e poligono regolare ottimale')
+plt.text(10,-10,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
 plt.show()
+
+
 
