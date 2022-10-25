@@ -50,14 +50,14 @@ def somma_quad(alfa, argomenti):
 #########################################################################################
 
 print()
-scelta = int(input("Si intendono leggere le coordinate da un file CSV (1) o generarle da questo programma (2)? "))
+scelta = int(input("Leggere le coordinate da un file CSV (1) o generarle da questo programma (2)? "))
 if scelta == 2:
     rng = np.random.default_rng()
-    centro, raggio = [rng.uniform(-2,2), rng.uniform(-2,2)], rng.uniform(17,20)
-    num_vertici = int(input('inserire il numero di vertici del poligono: '))
+    centro = [rng.uniform(-2,2), rng.uniform(-2,2)]
+    num_vertici = int(input('Inserire il numero di vertici della poligonale: '))
     indici_vertici = np.arange(num_vertici)
-    dati_x = centro[0] +  raggio*np.cos(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.2))
-    dati_y = centro[1] +  raggio*np.sin(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.2))
+    dati_x = centro[0] +  rng.uniform(19,20)*np.cos(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.5))
+    dati_y = centro[1] +  rng.uniform(19,20)*np.sin(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.5))
 elif scelta != 2:
     print()
     nome_file = input("Inserire il nome del file CSV: ")
@@ -84,24 +84,21 @@ if esiti_reg_circ.success:
 elif esiti_reg_circ.success:
     quit()
 
-# costruzione poligono mobile e minimizzazione dei quadrati delle distanze dai vertici iniziali
+# minimizzazione dei quadrati delle distanze dai vertici iniziali
 
 parametri = [xc, yc, r, dati_x, dati_y, indici_vertici, num_vertici]
 dizionario = optimize.minimize(somma_quad, 0, parametri)
 if dizionario.success:
     angolo_ottimale = dizionario.x[0]
+    output_su_file = input('Si intendono salvare su file i vertici del poligono regolare? (s) ')
+    if output_su_file =='s':
+        nome_file = input("Inserire il nome del file di output: ")
+        file_out = open(nome_file, "w")
+        coords = np.transpose(poligono_regolare(angolo_ottimale, parametri))
+        np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = 'ascissa, ordinata')
+        file_out.close()
 elif dizionario.success:
     quit()
-
-#########################################################################################
-
-output_su_file = input('Si intendono salvare su file i vertici del poligono regolare? (s) ')
-if output_su_file =='s':
-    nome_file = input("Inserire il nome del file di output: ")
-    file_out = open(nome_file, "w")
-    coords = np.transpose(poligono_regolare(angolo_ottimale, parametri))
-    np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = 'ascissa, ordinata')
-    file_out.close()
 
 #########################################################################################
 x_pol_reg, y_pol_reg = poligono_regolare(angolo_ottimale, parametri)
@@ -110,14 +107,17 @@ xp, yp = punti_cfr_ottimale(xc, yc, r)
 
 figura = plt.figure(facecolor = 'white')
 plt.rcParams['figure.figsize'] = [16, 12]
+ax = plt.axes()
+ax.set_axisbelow(True)
 plt.axis('equal')
 plt.grid()
-plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
+plt.plot([dati_x, np.roll(dati_x, 1)], [dati_y, np.roll(dati_y, 1)], linewidth = .5, c = 'orange', zorder = -1)
+plt.plot(xp, yp, linewidth = 1, alpha = 0.5, zorder = -2)
 plt.scatter(xc, yc, c ='blue', marker = 'x')
 plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali poligonale', marker = 'o')
 plt.scatter(x_pol_reg, y_pol_reg, c = 'blue', label = 'vertici poligono regolare ottimale', marker = '.')
 plt.fill(x_pol_reg, y_pol_reg, facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
-plt.title('Punti iniziali, circonferenza ottimale\n e poligono regolare ottimale')
-plt.text(15,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
+plt.title('Vertici iniziali poligonale, circonferenza ottimale\n e poligono regolare ottimale')
+plt.text(12,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
 plt.show()
