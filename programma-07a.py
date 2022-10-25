@@ -16,7 +16,7 @@
 #
 # @Lorenzo
 
-# librerie necessarie
+# librerie
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
@@ -33,69 +33,80 @@ def punti_cfr_ottimale(xc, yc, raggio):
     return xp, yp
 
 # Genera il poligono regolare geometrico
-def poligonoRegolare(alfa, pars):
-    xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa)
-    yPolMobile = pars[1] + pars[2]*np.sin(par[5]*(2*np.pi/pars[6])+alfa)
-    return xPolMobile, yPolMobile
+def poligono_regolare(angolo, argomenti):
+    # argomenti[0] = ascissa centro,  argomenti[1] = ordinata centro, argomenti[2] = raggio,
+    # argomenti[5] = indici dei vertici, argomenti[6] = num_vertici o vertici
+    x_pol_mobile = argomenti[0] + argomenti[2]*np.cos(argomenti[5]*(2*np.pi/argomenti[6])+angolo)
+    y_pol_mobile = argomenti[1] + argomenti[2]*np.sin(argomenti[5]*(2*np.pi/argomenti[6])+angolo)
+    return x_pol_mobile, y_pol_mobile
 
-def somma_quad(alfa, pars):
-    # verticiUtilizzati = len(pars[5])
-    xPolMobile, yPolMobile = poligonoRegolare(alfa, pars)
-    somma = np.sum((pars[3]-xPolMobile)**2+(pars[4]-yPolMobile)**2)
+def somma_quad(alfa, argomenti):
+    # argomenti[0] = ascissa centro,  argomenti[1] = ordinata centro, argomenti[2] = raggio,
+    # argomenti[3] = dati_x, argomenti[4] = dati_y, argomenti[5] = indici dei vertici, argomenti[6] = num_vertici o vertici
+    x_pol_mobile, y_pol_mobile = poligono_regolare(alfa, argomenti)
+    somma = np.sum((argomenti[3]-x_pol_mobile)**2+(argomenti[4]-y_pol_mobile)**2)
     return somma    
 
-# Inizio programma
+#########################################################################################
 
-alternativa = int(input("si vuole leggere i dati da un file CSV (1) o generarli dal programma (2)? "))
-if alternativa==2:
+print()
+scelta = int(input("Si intendono leggere le coordinate da un file CSV (1) o generarle da questo programma (2)? "))
+if scelta == 2:
     rng = np.random.default_rng()
-    centro, raggio = [rng.uniform(-2,2),rng.uniform(-2,2)], rng.uniform(17,20)
-    numLati = int(input('inserire il numero di lati del poligono: '))
-    maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
-    indiceVertici = np.arange(numLati)
-    dati_x = centro[0] +  raggio*np.cos(2*np.pi*indiceVertici/numLati + rng.uniform(0,.1))
-    dati_y = centro[1] +  raggio*np.sin(2*np.pi*indiceVertici/numLati + rng.uniform(0,.1))
-elif alternativa != 2:
+    centro, raggio = [rng.uniform(-2,2), rng.uniform(-2,2)], rng.uniform(17,20)
+    num_vertici = int(input('inserire il numero di vertici del poligono: '))
+    indici_vertici = np.arange(num_vertici)
+    dati_x = centro[0] +  raggio*np.cos(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.2))
+    dati_y = centro[1] +  raggio*np.sin(2*np.pi*indici_vertici/num_vertici + rng.uniform(0,.2))
+elif scelta != 2:
+    print()
     nome_file = input("Inserire il nome del file CSV: ")
-    # per esempio, esempio3-completo.csv
     file_in = open(nome_file, "r")
     coppie_dati = np.loadtxt(file_in, delimiter = ",", comments = '#', usecols = (0,1))
-    numLati = len(coppie_dati)
-    indiceVertici = np.arange(numLati)
+    num_vertici = len(coppie_dati)
+    indici_vertici = np.arange(num_vertici)
     nparrayX_Y = coppie_dati.transpose()
     dati_x = nparrayX_Y[0]
     dati_y = nparrayX_Y[1]
     file_in.close()
 
-
-# ricerca cfr ottimale
+#########################################################################################
+# ricerca della cfr di regressione
 x_med = np.mean(dati_x)
 y_med = np.mean(dati_y)
 # stima_iniziale_raggio 
 stima_iniziale_raggio =np.mean(np.sqrt((dati_x-x_med)**2 + (dati_y-y_med)**2))
 x0 = np.array([x_med, y_med, stima_iniziale_raggio])
-esiti = optimize.minimize(funzione_obiettivo, x0, args = (dati_x, dati_y))
+esiti_reg_circ = optimize.minimize(funzione_obiettivo, x0, args = (dati_x, dati_y))
 # print(esiti)
-xc, yc, r = esiti.x
+if esiti_reg_circ.success:
+    xc, yc, r = esiti_reg_circ.x
+elif esiti_reg_circ.success:
+    quit()
 
-# costruzione poligono mobile
+# costruzione poligono mobile e minimizzazione dei quadrati delle distanze dai vertici iniziali
 
-par = [xc, yc, r, dati_x, dati_y, indiceVertici, numLati]
-diz = optimize.minimize(somma_quad, 0, par)
-angolo_ottimale = diz.x[0]
+parametri = [xc, yc, r, dati_x, dati_y, indici_vertici, num_vertici]
+dizionario = optimize.minimize(somma_quad, 0, parametri)
+if dizionario.success:
+    angolo_ottimale = dizionario.x[0]
+elif dizionario.success:
+    quit()
 
-output = input('si vuole un file di output con i vertici del poligono regolare? (s) ')
-if output=='s':
-    nome_file = input("Inserisci il nome del file di output: ")
+#########################################################################################
+
+output_su_file = input('Si intendono salvare su file i vertici del poligono regolare? (s) ')
+if output_su_file =='s':
+    nome_file = input("Inserire il nome del file di output: ")
     file_out = open(nome_file, "w")
-    coords = np.transpose(poligonoRegolare(angolo_ottimale, par))
+    coords = np.transpose(poligono_regolare(angolo_ottimale, parametri))
     np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = 'ascissa, ordinata')
     file_out.close()
 
-xPol, yPol = poligonoRegolare(angolo_ottimale, par)
-
+#########################################################################################
+x_pol_reg, y_pol_reg = poligono_regolare(angolo_ottimale, parametri)
 xp, yp = punti_cfr_ottimale(xc, yc, r)
-
+#########################################################################################
 
 figura = plt.figure(facecolor = 'white')
 plt.rcParams['figure.figsize'] = [16, 12]
@@ -103,13 +114,10 @@ plt.axis('equal')
 plt.grid()
 plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
 plt.scatter(xc, yc, c ='blue', marker = 'x')
-plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali poligonale', marker = 'x')
-plt.scatter(xPol, yPol, c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
-plt.fill(xPol, yPol, facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
+plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali poligonale', marker = 'o')
+plt.scatter(x_pol_reg, y_pol_reg, c = 'blue', label = 'vertici poligono regolare ottimale', marker = '.')
+plt.fill(x_pol_reg, y_pol_reg, facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Punti iniziali, circonferenza ottimale\n e poligono regolare ottimale')
 plt.text(15,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
 plt.show()
-
-
-
