@@ -32,10 +32,10 @@ def punti_cfr_ottimale(xc, yc, raggio):
     yp = yc + raggio*np.sin(alfa)
     return xp, yp
 
-def punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, raggio):
-    angoli = np.arctan2(dati_y-yc,dati_x-xc)
-    punti = np.transpose([raggio*np.cos(angoli)+xc, raggio*np.sin(angoli)+yc])
-    return punti
+# def punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, raggio):
+#     angoli = np.arctan2(dati_y-yc,dati_x-xc)
+#     punti = np.transpose([raggio*np.cos(angoli)+xc, raggio*np.sin(angoli)+yc])
+#     return punti
 
 # Genera il poligono regolare geometrico
 def poligonoRegolare(alfa, pars):
@@ -53,7 +53,6 @@ def somma_quad(alfa, pars):
 
 rng = np.random.default_rng()
 centro, raggio = [rng.uniform(-2,2),rng.uniform(-2,2)], rng.uniform(17,20)
-print(centro, raggio)
 numLati = int(input('inserire il numero di lati del poligono: '))
 maxScostamento = float(input("inserire il valore massimo dell'errore (per es. 0.01): "))
 indiceVertici = np.arange(numLati)
@@ -75,15 +74,12 @@ xc, yc, r = esiti.x
 
 par = [xc, yc, r, dati_x, dati_y, indiceVertici, numLati]
 diz = optimize.minimize(somma_quad, 0, par)
-
 angolo_ottimale = diz.x[0]
-
-print(diz.x[0],diz.x[0])
 
 xp, yp = punti_cfr_ottimale(xc, yc, r)
 
-punti_cfr = punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, r)
-[puntiCfr_x, puntiCfr_y] = [punti_cfr[:,0], punti_cfr[:,1]]
+# punti_cfr = punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, r)
+# [puntiCfr_x, puntiCfr_y] = [punti_cfr[:,0], punti_cfr[:,1]]
 
 # parte grafica
 # ESPANDERE la finestra grafica a tutto schermo ed eventualmente zoomare in regioni rettangolari
@@ -92,14 +88,12 @@ figura = plt.figure(facecolor = 'white')
 plt.rcParams['figure.figsize'] = [16, 12]
 plt.axis('equal')
 plt.grid()
-xp, yp = punti_cfr_ottimale(xc, yc, r)
 plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
-plt.scatter(xc, yc, c = 'red', marker = 'x')
+plt.scatter(xc, yc, c ='blue', marker = 'x')
 plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali (approx.ideale)', marker = 'x')
 plt.scatter(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ottimale,par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
-# plt.fill(ascisse, ordinate, facecolor = 'red', alpha = 0.1, label = 'poligono ideale di partenza')
-plt.fill(poligonoRegolare(diz.x[0],par)[0], poligonoRegolare(diz.x[0],par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
+plt.fill(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ottimale,par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
-plt.title('Vertici iniziali approssimati, circonferenza ottimale\n e poligono geometrico regolare di regressione')
+plt.title('Punti iniziali, circonferenza ottimale\n e poligono regolare ottimale')
 plt.show()
 
