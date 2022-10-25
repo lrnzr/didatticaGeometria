@@ -32,11 +32,6 @@ def punti_cfr_ottimale(xc, yc, raggio):
     yp = yc + raggio*np.sin(alfa)
     return xp, yp
 
-# def punti_cfr_corrispondenti(dati_x, dati_y, xc, yc, raggio):
-#     angoli = np.arctan2(dati_y-yc,dati_x-xc)
-#     punti = np.transpose([raggio*np.cos(angoli)+xc, raggio*np.sin(angoli)+yc])
-#     return punti
-
 # Genera il poligono regolare geometrico
 def poligonoRegolare(alfa, pars):
     xPolMobile = pars[0] + pars[2]*np.cos(par[5]*(2*np.pi/pars[6])+alfa)
@@ -87,14 +82,17 @@ xc, yc, r = esiti.x
 
 par = [xc, yc, r, dati_x, dati_y, indiceVertici, numLati]
 diz = optimize.minimize(somma_quad, 0, par)
-print(diz)
 angolo_ottimale = diz.x[0]
 
-nome_file = input("Inserisci il nome del file di output: ")
-file_out = open(nome_file, "w")
-coords = np.transpose(poligonoRegolare(angolo_ottimale, par))
-np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = '# ascissa, ordinata')
-file_out.close()
+output = input('si vuole un file di output con i vertici del poligono regolare? (s) ')
+if output=='s':
+    nome_file = input("Inserisci il nome del file di output: ")
+    file_out = open(nome_file, "w")
+    coords = np.transpose(poligonoRegolare(angolo_ottimale, par))
+    np.savetxt(file_out, coords, fmt = '%10.5f', delimiter = ',', header = 'ascissa, ordinata')
+    file_out.close()
+
+xPol, yPol = poligonoRegolare(angolo_ottimale, par)
 
 xp, yp = punti_cfr_ottimale(xc, yc, r)
 
@@ -105,12 +103,12 @@ plt.axis('equal')
 plt.grid()
 plt.plot(xp, yp, linewidth = 1, alpha = 0.5)
 plt.scatter(xc, yc, c ='blue', marker = 'x')
-plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali (approx.ideale)', marker = 'x')
-plt.scatter(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ottimale,par)[1], c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
-plt.fill(poligonoRegolare(angolo_ottimale,par)[0], poligonoRegolare(angolo_ottimale,par)[1], facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
+plt.scatter(dati_x, dati_y, c = 'red', label = 'vertici iniziali poligonale', marker = 'x')
+plt.scatter(xPol, yPol, c = 'blue', label = 'vertici poligono geometrico ottimale', marker = '.')
+plt.fill(xPol, yPol, facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Punti iniziali, circonferenza ottimale\n e poligono regolare ottimale')
-plt.text(10,-10,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
+plt.text(15,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
 plt.show()
 
 
