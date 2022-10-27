@@ -1,27 +1,14 @@
-#!/usr/bin/env python 3
-# Genera una rappresentazione grafica dei punti iniziali e del poligono regolare ottimale
-
-# Il programma chiede il numero dei lati del poligono "teorico" (con centro in (0,0) e inscritto in una circonferenza di raggio
-# unitario) e lo scostamento massimo di ciascuna coordinata.
-# Su tale base genera i vertici di un poligono ("reale") le cui coordinate si discostano in modo random da quello teorico.
-# Tramite una regressione circolare, calcola centro e raggio della circonferenza ottimale. Questa approssima nel 
-# modo migliore i vertici del poligono "reale". 
-# Successivamente determina il poligono geometrico regolare inscritto in tale circonferenza cosi' da minimizzare la somma dei
-# quadrati delle distanze dai vertici del poligono reale.
-# Infine si rappresentano graficamente:
-# - il poligono teorico iniziale (in trasparenza rosso)
-# - la circonferenza ottimale (con relativo centro)
-# - i punti del poligono reale (crocette)
-# - i vertici e il poligono ottimale
-#
+# Il programma `poligonoRegolare.py` determina la circonferenza ottimale dei vertici
+# di una poligonale che approssima un poligono regolare e quindi individua il poligono
+# regolare che si adatta ad essa in modo ottimale.
+# A richiesta legge i dati da un file CSV oppure esporta i vertici del poligono regolare in CSV.
 # @Lorenzo
 
-# librerie
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
 
-# definizioni delle varie funzioni
+# funzione obiettivo per la ricerca della circonferenza. metodo geometrico
 def funzione_obiettivo(argomenti, ascisse, ordinate):
     # argomenti[0] = ascissa centro,  argomenti[1] = ordinata centro, argomenti[2] = raggio,
     return np.sum((np.sqrt((ascisse-argomenti[0])**2 + (ordinate-argomenti[1])**2)-argomenti[2])**2)
