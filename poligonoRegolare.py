@@ -106,5 +106,5 @@ plt.scatter(x_pol_reg, y_pol_reg, c = 'blue', label = 'vertici poligono regolare
 plt.fill(x_pol_reg, y_pol_reg, facecolor = 'cornflowerblue', alpha = 0.4, label = 'poligono ottimale')
 plt.legend(loc = 'best', labelspacing = 0.5)
 plt.title('Vertici iniziali poligonale, circonferenza ottimale\n e poligono regolare ottimale')
-plt.text(12,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
+plt.text(16,-18,'centro: ({0:6.4f}, {1:6.4f}), raggio = {2:6.4f}'.format(xc,yc,r))
 plt.show()
