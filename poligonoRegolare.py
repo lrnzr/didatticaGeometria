@@ -1,6 +1,6 @@
-# Il programma `poligonoRegolare.py` determina la circonferenza ottimale dei vertici
-# di una poligonale che approssima un poligono regolare e quindi individua il poligono
-# regolare che si adatta ad essa in modo ottimale.
+# Il programma `poligonoRegolare.py` determina la circonferenza ottimale che interpola i vertici
+# di una poligonale che, a sua volta, approssima un poligono regolare. Individua quindi il poligono
+# regolare che si adatta in modo ottimale alla poligonale.
 # A richiesta legge i dati da un file CSV oppure esporta i vertici del poligono regolare in CSV.
 # @Lorenzo
 
@@ -48,6 +48,7 @@ if scelta == 2:
 elif scelta != 2:
     print()
     nome_file = input("Inserire il nome del file CSV: ")
+    # come demo riportiamo il file pentagonale.csv 
     file_in = open(nome_file, "r")
     coppie_dati = np.loadtxt(file_in, delimiter = ",", comments = '#', usecols = (0,1))
     num_vertici = len(coppie_dati)

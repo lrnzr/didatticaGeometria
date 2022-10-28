@@ -1,8 +1,8 @@
-# Poligonale e poligono regolare
+# Dalla poligonale al poligono regolare
 
 ## Una applicazione della regressione circolare
 
-*Il programma Python `poligonoRegolare.py` determina la circonferenza ottimale dei vertici di una poligonale che approssima un poligono regolare. Individua quindi il poligono regolare che si adatta ad essa nel modo migliore.*
+*Il programma Python `poligonoRegolare.py` e il notebook Jupyter `poligonoRegolare.ipynb` permettono di determinare la circonferenza che interpola nel modo ottimale i vertici di una poligonale che, a sua volta, approssima un poligono regolare. Viene quindi individuato il poligono regolare che si adatta nel modo migliore alla poligonale.*
 
 ![Poligonale e poligono regolare ottimale](img.png)
 
