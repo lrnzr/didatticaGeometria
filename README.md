@@ -15,7 +15,6 @@ Nel caso si intenda visualizzare solo il contenuto del notebook `poligonoRegolar
 ### Sperimentazione
 
 Se invece si vuole sperimentare online in modo interattivo con il notebook va lanciato *Binder*.
-
 Il caricamento sul server di *Binder* dell'intero repository richiede, per poter iniziare l'elaborazione, circa un minuto di attesa dopo il quale ci si trova in un ambiente dove sarà possibile selezionare il notebook e avviarne l'esecuzione passo passo oppure, da menu (`Run\Run All Cells`), eseguire in blocco tutte le celle.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lrnzr/didatticaGeometria/HEAD)
